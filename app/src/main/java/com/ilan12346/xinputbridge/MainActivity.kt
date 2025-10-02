@@ -3,8 +3,11 @@ package com.ilan12346.xinputbridge
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import android.view.View
+import java.net.NetworkInterface
+import java.net.Inet4Address
 
 class MainActivity : AppCompatActivity() {
 
@@ -23,6 +26,9 @@ class MainActivity : AppCompatActivity() {
         val stopServiceButton: Button = findViewById(R.id.stopServiceButton)
         val grantPermissionsButton: Button = findViewById(R.id.grantPermissionsButton)
         val startSecondActivityButton: Button = findViewById(R.id.startSecondActivityButton)
+        val ipAddressTextView: TextView = findViewById(R.id.ipAddressTextView)
+
+        ipAddressTextView.text = getIpAddress()
 
         startSecondActivityButton.setOnClickListener {
             val intent = Intent(this, SecondActivity::class.java)
@@ -60,5 +66,24 @@ class MainActivity : AppCompatActivity() {
         permissionManager.onActivityResult(requestCode, resultCode, data)
     }
 
-
+    private fun getIpAddress(): String {
+        try {
+            val networkInterfaces = NetworkInterface.getNetworkInterfaces()
+            while (networkInterfaces.hasMoreElements()) {
+                val networkInterface = networkInterfaces.nextElement()
+                if (networkInterface.name == "avf_tap_fixed") {
+                    val addresses = networkInterface.inetAddresses
+                    while (addresses.hasMoreElements()) {
+                        val address = addresses.nextElement()
+                        if (address is Inet4Address) {
+                            return "IP: ${address.hostAddress}"
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return "IP: Not Found"
+    }
 }
