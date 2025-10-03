@@ -38,17 +38,23 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install build tools
-      run: sudo apt-get update && sudo apt-get install -y gcc make
+    - name: Install build tools and cross-compiler
+      run: sudo apt-get update && sudo apt-get install -y gcc make gcc-aarch64-linux-gnu
 
-    - name: Compile the proxy
-      run: make -C proxy
+    - name: Compile the proxy for all architectures
+      run: make -C proxy all
+
+    - name: Prepare package directory
+      run: |
+        mkdir -p package/amd64
+        mkdir -p package/arm64
+        mv proxy/udp_proxy_amd64 package/amd64/udp_proxy
+        mv proxy/udp_proxy_arm64 package/arm64/udp_proxy
+        cp proxy/install-service.sh package/
+        cp proxy/proxy.service package/
 
     - name: Upload Proxy Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: udp-proxy-package
-        path: |
-          proxy/udp_proxy
-          proxy/install-service.sh
-          proxy/proxy.service
+        path: package/
