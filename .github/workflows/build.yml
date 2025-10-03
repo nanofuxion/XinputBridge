@@ -51,10 +51,10 @@ jobs:
       run: fakeroot ./xinput_dev/create_ubuntu_bootstraps.sh
 
     - name: Prepare build environment
-      run: ./xinput_dev/prepare.sh
+      run: fakeroot ./xinput_dev/prepare.sh
 
     - name: Compile Xinput
-      run: ./xinput_dev/compile_xinput.sh
+      run: fakeroot ./xinput_dev/compile_xinput.sh
 
     - name: Upload Xinput DLLs
       uses: actions/upload-artifact@v4
