@@ -4,8 +4,7 @@
 #########vvv change vvvvvv      ##############################
 
 
-export BUILD_DIR_REL="xinput_dev/work_temp"
-export BUILD_DIR="$GITHUB_WORKSPACE/$BUILD_DIR_REL"
+export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
 
 
 ##############################################################
@@ -125,7 +124,7 @@ export CROSSCXX_X64="x86_64-w64-mingw32-g++"
 
 export CFLAGS_X32="-march=i686 -msse2 -mfpmath=sse -O2 -ftree-vectorize"
 export CFLAGS_X64="-march=x86-64 -msse3 -mfpmath=sse -O2 -ftree-vectorize"
-export LDFLAGS="-Wl,-O1,--sort-common,--as-needed -liphlpapi"
+export LDFLAGS="-Wl,-O1,--sort-common,--as-needed"
 
 export CROSSCFLAGS_X32="${CFLAGS_X32}"
 export CROSSCFLAGS_X64="${CFLAGS_X64}"

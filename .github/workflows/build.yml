@@ -1,4 +1,4 @@
-name: Build Android and Desktop Apps
+name: Build Android App and UDP Proxy
 
 on:
   push:
@@ -32,32 +32,23 @@ jobs:
         name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk
 
-  build-desktop:
+  build-proxy:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
 
-    - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y autoconf bubblewrap git fakeroot debootstrap perl
+    - name: Install build tools
+      run: sudo apt-get update && sudo apt-get install -y gcc make
 
-    - name: Grant execute permissions to build scripts
-      run: chmod +x xinput_dev/*.sh
+    - name: Compile the proxy
+      run: make -C proxy
 
-    - name: Clone Wine
-      run: git clone --depth 1 --branch wine-9.3 https://github.com/wine-mirror/wine.git xinput_dev/work_temp/wine
-
-    - name: Run bootstrap script
-      run: fakeroot ./xinput_dev/create_ubuntu_bootstraps.sh
-
-    - name: Prepare build environment
-      run: fakeroot ./xinput_dev/prepare.sh
-
-    - name: Compile Xinput
-      run: fakeroot ./xinput_dev/compile_xinput.sh
-
-    - name: Upload Xinput DLLs
+    - name: Upload Proxy Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: xinput-dlls
-        path: xinput_dev/output/
+        name: udp-proxy-package
+        path: |
+          proxy/udp_proxy
+          proxy/install-service.sh
+          proxy/proxy.service

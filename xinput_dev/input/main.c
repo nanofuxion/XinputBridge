@@ -42,7 +42,6 @@
 #include "winnls.h"
 #include "winternl.h"
 #include "winsock2.h"
-#include <iphlpapi.h>
 
 #include "dbt.h"
 #include "setupapi.h"
@@ -54,67 +53,6 @@
 #include <stdarg.h>
 
 #include "wine/debug.h"
-
-
-// New global variable and function
-static char server_ip[INET_ADDRSTRLEN] = "127.0.0.1";
-
-static void find_server_ip(void)
-{
-    PMIB_IPNETTABLE pIpNetTable = NULL;
-    DWORD dwSize = 0;
-    DWORD dwRetVal = 0;
-    int i;
-
-    // First call to get the size of the table
-    dwRetVal = GetIpNetTable(NULL, &dwSize, FALSE);
-    if (dwRetVal != ERROR_INSUFFICIENT_BUFFER) {
-        char error_msg[100];
-        sprintf(error_msg, "GetIpNetTable failed to get size. Error: %lu", dwRetVal);
-        console_write(error_msg);
-        console_write("Falling back to 127.0.0.1");
-        return;
-    }
-
-    pIpNetTable = (MIB_IPNETTABLE *) malloc(dwSize);
-    if (pIpNetTable == NULL) {
-        console_write("Failed to allocate memory for GetIpNetTable.");
-        console_write("Falling back to 127.0.0.1");
-        return;
-    }
-
-    // Second call to get the actual table
-    if ((dwRetVal = GetIpNetTable(pIpNetTable, &dwSize, FALSE)) == NO_ERROR) {
-        for (i = 0; i < pIpNetTable->dwNumEntries; i++) {
-            // We are looking for a dynamic or static entry that is not a loopback address.
-            if (pIpNetTable->table[i].dwType == MIB_IPNET_TYPE_DYNAMIC || pIpNetTable->table[i].dwType == MIB_IPNET_TYPE_STATIC) {
-                struct in_addr IpAddr;
-                IpAddr.S_un.S_addr = (u_long) pIpNetTable->table[i].dwAddr;
-                char *ip_str = inet_ntoa(IpAddr);
-
-                if (ip_str && strcmp(ip_str, "127.0.0.1") != 0) {
-                    console_write("Found server IP via GetIpNetTable:");
-                    console_write(ip_str);
-                    strncpy(server_ip, ip_str, sizeof(server_ip) - 1);
-                    server_ip[sizeof(server_ip) - 1] = '\0'; // Ensure null termination
-
-                    free(pIpNetTable);
-                    return;
-                }
-            }
-        }
-    } else {
-        char error_msg[100];
-        sprintf(error_msg, "GetIpNetTable failed with error %lu", dwRetVal);
-        console_write(error_msg);
-    }
-
-    if (pIpNetTable != NULL) {
-        free(pIpNetTable);
-    }
-
-    console_write("Could not find server IP via GetIpNetTable. Falling back to 127.0.0.1");
-}
 
 
 #define XINPUT_GAMEPAD_GUIDE 0x0400
@@ -239,7 +177,7 @@ static BOOL create_server_socket(void)
     if (!winsock_loaded) return FALSE;
     
     server_addr.sin_family = AF_INET;
-    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     server_addr.sin_port = htons(SERVER_PORT);
     
     server_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -485,10 +423,10 @@ static BOOL WINAPI start_update_thread_once(INIT_ONCE *once, void *param, void *
 {
     if(console_debug) AllocConsole();
     
-    find_server_ip();
+
 
     client_addr.sin_family = AF_INET;
-    client_addr.sin_addr.s_addr = inet_addr(server_ip);
+    client_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     client_addr.sin_port = htons(CLIENT_PORT);
     client_addr_len = sizeof(client_addr);
 
