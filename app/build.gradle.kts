@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.ilan12346.xinputbridge"
+    namespace = "com.nanofuxion.xinputbridge"
     compileSdk = 33
     
     defaultConfig {
-        applicationId = "com.ilan12346.xinputbridge"
+        applicationId = "com.nanofuxion.xinputbridge"
         minSdk = 29
         targetSdk = 33
         versionCode = 1

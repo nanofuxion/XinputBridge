@@ -1,4 +1,4 @@
-package com.ilan12346.xinputbridge
+package com.nanofuxion.xinputbridge
 
 import android.content.Intent
 import android.os.Bundle

@@ -1,4 +1,4 @@
-package com.ilan12346.xinputbridge
+package com.nanofuxion.xinputbridge
 
 import android.os.IBinder
 import android.view.View

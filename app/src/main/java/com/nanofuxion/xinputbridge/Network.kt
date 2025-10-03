@@ -1,4 +1,4 @@
-package com.ilan12346.xinputbridge
+package com.nanofuxion.xinputbridge
 
 import java.net.DatagramPacket
 import java.net.DatagramSocket
