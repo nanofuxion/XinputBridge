@@ -39,7 +39,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y autoconf bubblewrap git fakeroot
+      run: sudo apt-get update && sudo apt-get install -y autoconf bubblewrap git fakeroot debootstrap perl
 
     - name: Grant execute permissions to build scripts
       run: chmod +x xinput_dev/*.sh
