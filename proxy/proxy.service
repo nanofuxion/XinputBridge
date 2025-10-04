@@ -1,0 +1,14 @@
+[Unit]
+Description=UDP Proxy for Xinput Bridge
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/udp_proxy
+Restart=always
+User=root
+Group=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
