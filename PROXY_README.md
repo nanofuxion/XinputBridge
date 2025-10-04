@@ -45,7 +45,7 @@ This architecture decouples the core Xinput functionality from the networking, m
     sudo ./install-service.sh
     ```
 
-    This script will compile both proxy versions, automatically detect your system's architecture (e.g., `x86_64` or `aarch64`), and install the correct binary. It also copies the service file to `/etc/systemd/system` and enables the service to run automatically in the background.
+    This script automatically detects your system's architecture (e.g., `x86_64` or `aarch64`) and installs the correct pre-compiled binary from the package. It also copies the service file to `/etc/systemd/system` and enables the service to run automatically in the background.
 
 3.  **Verify the Service (Optional):** You can check if the service is running correctly with:
     ```bash
