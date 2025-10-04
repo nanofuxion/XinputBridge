@@ -1,10 +1,11 @@
 #!/bin/bash
 
 # This script installs the UDP proxy as a systemd service.
-# It must be run with root privileges.
+# It must be run with root privileges from the extracted package directory.
 
 # --- Configuration ---
-PROXY_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Assumes the script is run from the root of the extracted 'package' directory.
+INSTALL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 TARGET_BIN_PATH="/usr/local/bin/udp_proxy"
 TARGET_SERVICE_PATH="/etc/systemd/system/proxy.service"
 
@@ -14,32 +15,24 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# --- Compile All Proxy Architectures ---
-echo "Compiling the UDP proxy for all architectures..."
-make -C "$PROXY_DIR" all
-if [ $? -ne 0 ]; then
-    echo "Compilation failed. Aborting."
-    exit 1
-fi
-echo "Compilation successful."
-
 # --- Detect Architecture and Select Binary ---
 ARCH=$(uname -m)
 SOURCE_BIN=""
 
 if [ "$ARCH" = "x86_64" ]; then
     echo "Detected AMD64 architecture."
-    SOURCE_BIN="$PROXY_DIR/udp_proxy_amd64"
+    SOURCE_BIN="$INSTALL_DIR/amd64/udp_proxy"
 elif [ "$ARCH" = "aarch64" ]; then
     echo "Detected ARM64 architecture."
-    SOURCE_BIN="$PROXY_DIR/udp_proxy_arm64"
+    SOURCE_BIN="$INSTALL_DIR/arm64/udp_proxy"
 else
     echo "Unsupported architecture: $ARCH. Aborting."
     exit 1
 fi
 
 if [ ! -f "$SOURCE_BIN" ]; then
-    echo "Error: Compiled binary not found at $SOURCE_BIN. Aborting."
+    echo "Error: Pre-compiled binary not found at $SOURCE_BIN."
+    echo "Please ensure you are running this script from the correct directory."
     exit 1
 fi
 
@@ -52,7 +45,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Installing systemd service file..."
-cp "$PROXY_DIR/proxy.service" "$TARGET_SERVICE_PATH"
+cp "$INSTALL_DIR/proxy.service" "$TARGET_SERVICE_PATH"
 if [ $? -ne 0 ]; then
     echo "Failed to copy service file to $TARGET_SERVICE_PATH. Aborting."
     exit 1
@@ -61,6 +54,9 @@ echo "Files installed successfully."
 
 # --- Setup Systemd Service ---
 echo "Setting up systemd service..."
+# Stop the service if it's already running to ensure a clean start
+systemctl stop proxy.service >/dev/null 2>&1
+
 systemctl daemon-reload
 if [ $? -ne 0 ]; then
     echo "Failed to reload systemd daemon. Aborting."
