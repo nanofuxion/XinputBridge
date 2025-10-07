@@ -106,19 +106,19 @@ int main() {
         return 1;
     }
 
-    // Bind proxy to localhost
+    // Bind proxy to all interfaces
     memset(&proxy_addr, 0, sizeof(proxy_addr));
     proxy_addr.sin_family = AF_INET;
-    proxy_addr.sin_addr.s_addr = inet_addr(PROXY_HOST);
+    proxy_addr.sin_addr.s_addr = htonl(INADDR_ANY); // Listen on all interfaces
     proxy_addr.sin_port = htons(PORT);
 
     if (bind(sock, (const struct sockaddr *)&proxy_addr, sizeof(proxy_addr)) < 0) {
-        sprintf(log_buf, "Bind failed on %s:%d. Error: %s", PROXY_HOST, PORT, strerror(errno));
+        sprintf(log_buf, "Bind failed on port %d. Error: %s", PORT, strerror(errno));
         log_message(log_buf);
         return 1;
     }
 
-    sprintf(log_buf, "UDP Proxy started. Listening on %s:%d", PROXY_HOST, PORT);
+    sprintf(log_buf, "UDP Proxy started. Listening on all interfaces on port %d", PORT);
     log_message(log_buf);
 
     while (1) {
