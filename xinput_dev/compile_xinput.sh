@@ -33,6 +33,7 @@ fi
 export BOOTSTRAP_X64=/opt/chroots/bionic64_chroot
 export BOOTSTRAP_X32=/opt/chroots/bionic32_chroot
 export scriptdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+export OUTPUT_DIR="${scriptdir}/output"
 export CC="gcc-9"
 export CXX="g++-9"
 export CROSSCC_X32="i686-w64-mingw32-gcc"
@@ -98,7 +99,7 @@ build_xinput_dll() {
     if [ -e "$1.dll" ]; then
         echo
         echo -e "\033[32m success, YEAH! \033[0m"
-        cp -f "$1.dll" ../../../../../output/64/"$1.dll"
+        cp -f "$1.dll" "${OUTPUT_DIR}/64/$1.dll"
     else
         echo
         echo -e "\033[31m fail :( \033[0m"
@@ -126,7 +127,7 @@ build_xinput_dll() {
     if [ -e "$1.dll" ]; then
         echo
         echo -e "\033[32m success, YEAH! \033[0m"
-        cp -f "$1.dll" ../../../../../output/32/"$1.dll"
+        cp -f "$1.dll" "${OUTPUT_DIR}/32/$1.dll"
     else
         echo
         echo -e "\033[31m fail :( \033[0m"

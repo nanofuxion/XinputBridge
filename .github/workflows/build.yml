@@ -65,10 +65,25 @@ jobs:
         export BUILD_DIR="${GITHUB_WORKSPACE}/xinput_dev/work_temp"
         cd xinput_dev
         bash compile_xinput.sh
+    - name: Verify compiled DLLs
+      run: |
+        echo "Checking output directory contents:"
+        ls -lah xinput_dev/output/32/ || echo "32-bit directory not found or empty"
+        ls -lah xinput_dev/output/64/ || echo "64-bit directory not found or empty"
+        echo "Counting DLL files:"
+        find xinput_dev/output -name "*.dll" -type f | wc -l
+        find xinput_dev/output -name "*.dll" -type f
     - name: Package Xinput DLLs
       run: |
         cd xinput_dev/output
-        zip -r ../../xinput-dlls.zip 32/ 64/
+        if [ -d "32" ] && [ -d "64" ]; then
+          zip -r ../../xinput-dlls.zip 32/ 64/
+          echo "Package created, contents:"
+          unzip -l ../../xinput-dlls.zip
+        else
+          echo "Error: Output directories not found"
+          exit 1
+        fi
     - name: Upload Xinput DLLs
       uses: actions/upload-artifact@v4
       with:
