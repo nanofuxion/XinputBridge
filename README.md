@@ -12,6 +12,28 @@ I would also like to extend my thanks to brunodev85 for providing the Wine libra
 
 Additionally, I utilized AndroidIDE for building most of the components. You can check out AndroidIDE at [AndroidIDEOfficial/AndroidIDE](https://github.com/AndroidIDEOfficial/AndroidIDE).
 
+## New: Direct Connection Mode
+
+The Xinput DLLs now support **direct connection** to the Android device, eliminating the need for a separate proxy! 
+
+**Key Features:**
+- 🚀 Automatic Android device IP discovery
+- ⚙️ Manual IP configuration via `XINPUT_BRIDGE_IP` environment variable
+- 🔄 Backward compatible with proxy setup
+- 📦 Simpler deployment (no proxy service needed)
+
+**Quick Start:**
+```bash
+# Option 1: Set IP manually (fastest)
+export XINPUT_BRIDGE_IP=10.174.15.114  # Use IP from XinputBridge app
+wine your_game.exe
+
+# Option 2: Auto-discovery
+wine your_game.exe  # DLL automatically finds your Android device
+```
+
+See [QUICK_START.md](QUICK_START.md) for detailed setup instructions.
+
 # Installation Instructions
 
 Download winefiles_with_install.zip and run install_winefiles.exe

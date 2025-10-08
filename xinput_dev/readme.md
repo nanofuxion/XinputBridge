@@ -1,5 +1,8 @@
 ### Easy and Fast Xinput Compilation - YEAH!
 
+> **NEW:** The modified `main.c` now supports **direct connection** to Android devices without requiring a proxy! 
+> See [DIRECT_CONNECTION.md](./DIRECT_CONNECTION.md) for details.
+
 #### Use of modified Scripts from Kron4ek
 
 - [Wine-Builds Repository by Kron4ek](https://github.com/Kron4ek/Wine-Builds.git)
@@ -43,5 +46,27 @@
 
 The Xinput DLLs are now available in the output folder, both 32-bit and 64-bit. You can copy them to Mobox/DarkOS.
 
+## Using the Direct Connection Feature
+
+The compiled DLLs now include automatic Android device discovery. You can:
+
+**Option 1 - Set IP via environment variable (fastest):**
+```bash
+export XINPUT_BRIDGE_IP=10.174.15.114  # Use IP shown in your XinputBridge app
+wine your_game.exe
+```
+
+**Option 2 - Let it auto-discover (takes a few seconds):**
+```bash
+wine your_game.exe  # DLL will scan common AVF IP ranges
+```
+
+**Option 3 - Use with proxy (backward compatible):**
+```bash
+# Start the proxy service first, then run your game
+wine your_game.exe  # DLL falls back to 127.0.0.1:7947
+```
+
+For more details, see [DIRECT_CONNECTION.md](./DIRECT_CONNECTION.md)
 
 
