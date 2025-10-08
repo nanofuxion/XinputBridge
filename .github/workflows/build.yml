@@ -27,33 +27,76 @@ jobs:
         name: app-debug
         path: app/build/outputs/apk/debug/app-debug.apk
 
-  build-proxy:
+  build-xinput:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
     - uses: actions/checkout@v4
-    - name: Install build tools and cross-compiler
-      run: sudo apt-get update && sudo apt-get install -y gcc make gcc-aarch64-linux-gnu zip
-    - name: Compile the proxy for all architectures
-      run: make -C proxy all
-    - name: Prepare package for artifact
+    - name: Install Wine build dependencies
       run: |
-        mkdir -p package/amd64
-        mkdir -p package/arm64
-        mv proxy/udp_proxy_amd64 package/amd64/udp_proxy
-        mv proxy/udp_proxy_arm64 package/arm64/udp_proxy
-        cp proxy/install-service.sh package/
-        cp proxy/proxy.service package/
-        cd package
-        zip -r ../udp-proxy-package.zip .
-    - name: Upload Proxy Artifact
+        sudo apt-get update
+        sudo apt-get install -y \
+          gcc-9 g++-9 \
+          gcc-mingw-w64-i686 gcc-mingw-w64-x86-64 \
+          g++-mingw-w64-i686 g++-mingw-w64-x86-64 \
+          autoconf bison flex \
+          bubblewrap debootstrap \
+          make zip unzip wget git
+    - name: Setup build directory
+      run: |
+        mkdir -p xinput_dev/work_temp
+        mkdir -p xinput_dev/output/32
+        mkdir -p xinput_dev/output/64
+    - name: Create Ubuntu bootstraps
+      run: |
+        cd xinput_dev
+        sudo bash create_ubuntu_bootstraps.sh
+    - name: Download Wine source
+      run: |
+        cd xinput_dev/work_temp
+        git clone --branch wine-9.3 --depth 1 https://github.com/wine-mirror/wine.git
+    - name: Prepare Wine build
+      run: |
+        export BUILD_DIR="${GITHUB_WORKSPACE}/xinput_dev/work_temp"
+        cd xinput_dev
+        bash prepare.sh
+    - name: Compile Xinput DLLs
+      run: |
+        export BUILD_DIR="${GITHUB_WORKSPACE}/xinput_dev/work_temp"
+        cd xinput_dev
+        bash compile_xinput.sh
+    - name: Verify compiled DLLs
+      run: |
+        echo "Checking output directory contents:"
+        ls -lah xinput_dev/output/32/ || echo "32-bit directory not found or empty"
+        ls -lah xinput_dev/output/64/ || echo "64-bit directory not found or empty"
+        echo "Counting DLL files:"
+        find xinput_dev/output -name "*.dll" -type f | wc -l
+        find xinput_dev/output -name "*.dll" -type f
+    - name: Package Xinput DLLs
+      run: |
+        cd xinput_dev/output
+        if [ -d "32" ] && [ -d "64" ]; then
+          zip -r ../../xinput-dlls.zip 32/ 64/
+          echo "Package created, contents:"
+          unzip -l ../../xinput-dlls.zip
+        else
+          echo "Error: Output directories not found"
+          exit 1
+        fi
+    - name: Upload Xinput DLLs
       uses: actions/upload-artifact@v4
       with:
-        name: udp-proxy-package
-        path: udp-proxy-package.zip
+        name: xinput-dlls
+        path: xinput-dlls.zip
+      if: success()
 
   release:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [build-android, build-proxy]
+    if: |
+      github.event_name == 'push' && 
+      github.ref == 'refs/heads/main' &&
+      (needs.build-android.result == 'success' && needs.build-xinput.result == 'success')
+    needs: [build-android, build-xinput]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -95,6 +138,6 @@ jobs:
 
           gh release create "$VERSION" \
             --title "Release $VERSION" \
-            --notes "Automated release of version $VERSION." \
+            --notes "Automated release of version $VERSION. Includes Android app and Xinput DLLs with direct connection support. Set XINPUT_BRIDGE_IP environment variable or let auto-discovery find your device." \
             artifacts/app-debug/app-debug.apk \
-            artifacts/udp-proxy-package/udp-proxy-package.zip
+            artifacts/xinput-dlls/xinput-dlls.zip

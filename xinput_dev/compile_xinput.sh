@@ -11,7 +11,11 @@
 ######### vvv change dir vvvv #########################
 
 
-export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
+if [ -z "$BUILD_DIR" ]; then
+    export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
+fi
+
+echo "DEBUG: Using BUILD_DIR=${BUILD_DIR}"
 
 
 #######################################################
@@ -31,6 +35,16 @@ fi
 export BOOTSTRAP_X64=/opt/chroots/bionic64_chroot
 export BOOTSTRAP_X32=/opt/chroots/bionic32_chroot
 export scriptdir="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+export OUTPUT_DIR="${scriptdir}/output"
+
+echo "DEBUG: scriptdir=${scriptdir}"
+echo "DEBUG: OUTPUT_DIR=${OUTPUT_DIR}"
+echo "DEBUG: Creating output directories..."
+mkdir -p "${OUTPUT_DIR}/32"
+mkdir -p "${OUTPUT_DIR}/64"
+echo "DEBUG: Output directories created"
+ls -la "${OUTPUT_DIR}/" || echo "WARNING: Cannot list OUTPUT_DIR"
+
 export CC="gcc-9"
 export CXX="g++-9"
 export CROSSCC_X32="i686-w64-mingw32-gcc"
@@ -96,7 +110,10 @@ build_xinput_dll() {
     if [ -e "$1.dll" ]; then
         echo
         echo -e "\033[32m success, YEAH! \033[0m"
-        cp -f "$1.dll" ../../../../../output/64/"$1.dll"
+        echo "DEBUG: Copying $1.dll to ${OUTPUT_DIR}/64/$1.dll"
+        cp -fv "$1.dll" "${OUTPUT_DIR}/64/$1.dll"
+        echo "DEBUG: Verifying copy..."
+        ls -lh "${OUTPUT_DIR}/64/$1.dll" || echo "ERROR: DLL not found after copy!"
     else
         echo
         echo -e "\033[31m fail :( \033[0m"
@@ -124,7 +141,10 @@ build_xinput_dll() {
     if [ -e "$1.dll" ]; then
         echo
         echo -e "\033[32m success, YEAH! \033[0m"
-        cp -f "$1.dll" ../../../../../output/32/"$1.dll"
+        echo "DEBUG: Copying $1.dll to ${OUTPUT_DIR}/32/$1.dll"
+        cp -fv "$1.dll" "${OUTPUT_DIR}/32/$1.dll"
+        echo "DEBUG: Verifying copy..."
+        ls -lh "${OUTPUT_DIR}/32/$1.dll" || echo "ERROR: DLL not found after copy!"
     else
         echo
         echo -e "\033[31m fail :( \033[0m"
@@ -143,6 +163,16 @@ build_xinput_dll xinput1_3
 build_xinput_dll xinput1_4
 build_xinput_dll xinput9_1_0
 
+echo ""
+echo "========================================="
+echo "Build Complete! Summary:"
+echo "========================================="
+echo "32-bit DLLs:"
+ls -lh "${OUTPUT_DIR}/32/" || echo "ERROR: No 32-bit DLLs found!"
+echo ""
+echo "64-bit DLLs:"
+ls -lh "${OUTPUT_DIR}/64/" || echo "ERROR: No 64-bit DLLs found!"
+echo "========================================="
 
 #
 #echo "Upload"
