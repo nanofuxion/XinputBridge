@@ -4,7 +4,12 @@
 #########vvv change vvvvvv      ##############################
 
 
-export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
+if [ -z "$BUILD_DIR" ]; then
+    export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
+fi
+
+echo "DEBUG: Using BUILD_DIR=${BUILD_DIR}"
+echo "DEBUG: BUILD_DIR exists: $([ -d "$BUILD_DIR" ] && echo 'yes' || echo 'no')"
 
 
 ##############################################################
