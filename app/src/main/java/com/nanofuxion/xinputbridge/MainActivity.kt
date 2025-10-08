@@ -44,22 +44,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        updateButtonVisibility()
-    }
-
-    private fun updateButtonVisibility() {
-        val startServiceButton: Button = findViewById(R.id.startServiceButton)
-        val stopServiceButton: Button = findViewById(R.id.stopServiceButton)
-        val grantPermissionsButton: Button = findViewById(R.id.grantPermissionsButton)
-
         if (permissionManager.checkOverlayPermission()) {
             grantPermissionsButton.visibility = View.GONE
-            startServiceButton.visibility = View.VISIBLE
-            stopServiceButton.visibility = View.VISIBLE
         } else {
             grantPermissionsButton.visibility = View.VISIBLE
-            startServiceButton.visibility = View.GONE
-            stopServiceButton.visibility = View.GONE
         }
     }
 
@@ -76,12 +64,6 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         permissionManager.onActivityResult(requestCode, resultCode, data)
-        updateButtonVisibility()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateButtonVisibility()
     }
 
     private fun getIpAddress(): String {

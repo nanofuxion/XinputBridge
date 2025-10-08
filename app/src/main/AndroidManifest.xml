@@ -6,8 +6,6 @@
     <uses-permission android:name="android.permission.VIBRATE"/>
     <uses-permission android:name="android.permission.ACCESS_VIBRATOR"/>
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <application
 
         android:allowBackup="true"
@@ -30,9 +28,7 @@
         <activity android:name=".SecondActivity" />
 
         <!-- Service Deklaration -->
-        <service 
-            android:name=".OverlayService"
-            android:foregroundServiceType="dataSync" />
+        <service android:name=".OverlayService" />
 
     </application>
 </manifest>
