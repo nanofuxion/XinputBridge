@@ -4,9 +4,7 @@
 #########vvv change vvvvvv      ##############################
 
 
-if [ -z "$BUILD_DIR" ]; then
-    export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
-fi
+export BUILD_DIR="${HOME}"/Desktop/xinput_dev/work_temp
 
 
 ##############################################################

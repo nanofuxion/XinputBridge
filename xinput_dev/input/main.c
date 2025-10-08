@@ -60,7 +60,6 @@
 #define SERVER_PORT 7949
 #define CLIENT_PORT 7947
 #define BUFFER_SIZE 64
-#define MAX_IP_LENGTH 16
 
 #define REQUEST_CODE_GET_GAMEPAD 8
 #define REQUEST_CODE_GET_GAMEPAD_STATE 9
@@ -111,8 +110,6 @@ static SOCKET server_sock = INVALID_SOCKET;
 static BOOL winsock_loaded = FALSE;
 static char xinput_min_index = 3;
 
-static char android_device_ip[MAX_IP_LENGTH] = {0};
-static BOOL ip_discovered = FALSE;
 
 char buffer[BUFFER_SIZE];
 int res;
@@ -150,86 +147,6 @@ void console_write(const char *message) {
     }
 } 
 
-static BOOL try_connect_to_ip(const char* ip) {
-    SOCKET test_sock;
-    struct sockaddr_in test_addr;
-    char test_buffer[BUFFER_SIZE];
-    int timeout = 500;
-    
-    test_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (test_sock == INVALID_SOCKET) return FALSE;
-    
-    setsockopt(test_sock, SOL_SOCKET, SO_RCVTIMEO, (char*)&timeout, sizeof(timeout));
-    
-    test_addr.sin_family = AF_INET;
-    test_addr.sin_addr.s_addr = inet_addr(ip);
-    test_addr.sin_port = htons(CLIENT_PORT);
-    
-    test_buffer[0] = REQUEST_CODE_GET_GAMEPAD;
-    int sent = sendto(test_sock, test_buffer, 1, 0, (struct sockaddr*)&test_addr, sizeof(test_addr));
-    
-    if (sent > 0) {
-        int addr_len = sizeof(test_addr);
-        int received = recvfrom(test_sock, test_buffer, BUFFER_SIZE, 0, (struct sockaddr*)&test_addr, &addr_len);
-        closesocket(test_sock);
-        return received > 0;
-    }
-    
-    closesocket(test_sock);
-    return FALSE;
-}
-
-static BOOL discover_android_ip(void) {
-    char msg_buffer[128];
-    char* env_ip;
-    
-    if (ip_discovered) return TRUE;
-    
-    env_ip = getenv("XINPUT_BRIDGE_IP");
-    if (env_ip != NULL && strlen(env_ip) > 0 && strlen(env_ip) < MAX_IP_LENGTH) {
-        sprintf(msg_buffer, "Using IP from XINPUT_BRIDGE_IP: %s", env_ip);
-        console_write(msg_buffer);
-        
-        if (try_connect_to_ip(env_ip)) {
-            strncpy(android_device_ip, env_ip, MAX_IP_LENGTH - 1);
-            android_device_ip[MAX_IP_LENGTH - 1] = '\0';
-            ip_discovered = TRUE;
-            sprintf(msg_buffer, "Successfully connected to: %s", android_device_ip);
-            console_write(msg_buffer);
-            return TRUE;
-        } else {
-            console_write("Failed to connect to IP from environment variable");
-        }
-    }
-    
-    console_write("Scanning for Android device on common AVF IP ranges...");
-    
-    const char* common_prefixes[] = {
-        "10.174.15.",
-        "10.0.2.",
-        "192.168.122.",
-        "192.168.210."
-    };
-    
-    for (int p = 0; p < 4; p++) {
-        for (int i = 1; i < 255; i++) {
-            char test_ip[MAX_IP_LENGTH];
-            sprintf(test_ip, "%s%d", common_prefixes[p], i);
-            
-            if (try_connect_to_ip(test_ip)) {
-                strncpy(android_device_ip, test_ip, MAX_IP_LENGTH - 1);
-                android_device_ip[MAX_IP_LENGTH - 1] = '\0';
-                ip_discovered = TRUE;
-                sprintf(msg_buffer, "Discovered Android device at: %s", android_device_ip);
-                console_write(msg_buffer);
-                return TRUE;
-            }
-        }
-    }
-    
-    console_write("Failed to discover Android device IP");
-    return FALSE;
-}
 
 static void close_server_socket(void) 
 {
@@ -506,21 +423,12 @@ static BOOL WINAPI start_update_thread_once(INIT_ONCE *once, void *param, void *
 {
     if(console_debug) AllocConsole();
     
-    console_write("XinputBridge initializing...");
-    
-    if (discover_android_ip()) {
-        client_addr.sin_family = AF_INET;
-        client_addr.sin_addr.s_addr = inet_addr(android_device_ip);
-        client_addr.sin_port = htons(CLIENT_PORT);
-        client_addr_len = sizeof(client_addr);
-        console_write("Client address configured successfully");
-    } else {
-        console_write("WARNING: Could not discover Android IP, using localhost as fallback");
-        client_addr.sin_family = AF_INET;
-        client_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-        client_addr.sin_port = htons(CLIENT_PORT);
-        client_addr_len = sizeof(client_addr);
-    }
+
+
+    client_addr.sin_family = AF_INET;
+    client_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    client_addr.sin_port = htons(CLIENT_PORT);
+    client_addr_len = sizeof(client_addr);
 
 
 
